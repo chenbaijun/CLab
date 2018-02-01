@@ -1,0 +1,2207 @@
+%!PS-Adobe-3.0
+%%Title: bddtest.cxx, cppext.cxx, makefile
+%%For: Rune M. Jensen
+%%Creator: a2ps version 4.13
+%%CreationDate: Wed Mar 24 21:58:09 2004
+%%BoundingBox: 24 24 588 768
+%%DocumentData: Clean7Bit
+%%Orientation: Landscape
+%%Pages: 7
+%%PageOrder: Ascend
+%%DocumentMedia: Letter 612 792 0 () ()
+%%DocumentNeededResources: font Courier
+%%+ font Courier-Bold
+%%+ font Courier-BoldOblique
+%%+ font Courier-Oblique
+%%+ font Helvetica
+%%+ font Helvetica-Bold
+%%+ font Symbol
+%%+ font Times-Bold
+%%+ font Times-Roman
+%%DocumentProcessColors: Black 
+%%DocumentSuppliedResources: procset a2ps-a2ps-hdr
+%%+ procset a2ps-black+white-Prolog
+%%+ encoding ISO-8859-1Encoding
+%%EndComments
+/a2psdict 200 dict def
+a2psdict begin
+%%BeginProlog
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+
+% EPSF import as in the Red Book
+/BeginInclude {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack 
+  userdict begin
+    0 setgray 0 setlinecap
+    1 setlinewidth 0 setlinejoin
+    10 setmiterlimit [ ] 0 setdash newpath
+    gs_languagelevel 1 ne {
+      false setstrokeadjust false setoverprint 
+    } if
+} bind def
+
+/EndInclude {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+/BeginEPSF {
+  BeginInclude
+  /showpage { } def
+} bind def
+
+/EndEPSF {
+  EndInclude
+} bind def
+
+% Page prefeed
+/page_prefeed {         % bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} bind def
+
+/deffont {
+  findfont exch scalefont def
+} bind def
+
+/reencode_font {
+  findfont reencode 2 copy definefont pop def
+} bind def
+
+% Function c-show (str => -)
+% centers text only according to x axis.
+/c-show { 
+  dup stringwidth pop
+  2 div neg 0 rmoveto
+  show
+} bind def
+
+% Function l-show (str => -)
+% prints texts so that it ends at currentpoint
+/l-show {
+  dup stringwidth pop neg 
+  0 
+  rmoveto show
+} bind def
+
+% center-fit show (str w => -)
+% show centered, and scale currentfont so that the width is less than w
+/cfshow {
+  exch dup stringwidth pop
+  % If the title is too big, try to make it smaller
+  3 2 roll 2 copy
+  gt
+  { % if, i.e. too big
+    exch div
+    currentfont exch scalefont setfont
+  } { % ifelse
+    pop pop 
+  }
+  ifelse
+  c-show			% center title
+} bind def
+
+% Return the y size of the current font
+% - => fontsize
+/currentfontsize {
+  currentfont /FontType get 0 eq {
+    currentfont /FontMatrix get 3 get
+  }{
+    currentfont /FontMatrix get 3 get 1000 mul
+  } ifelse
+} bind def
+
+% reencode the font
+% <encoding-vector> <fontdict> -> <newfontdict>
+/reencode { %def
+  dup length 5 add dict begin
+    { %forall
+      1 index /FID ne 
+      { def }{ pop pop } ifelse
+    } forall
+    /Encoding exch def
+
+    % Use the font's bounding box to determine the ascent, descent,
+    % and overall height; don't forget that these values have to be
+    % transformed using the font's matrix.
+    % We use `load' because sometimes BBox is executable, sometimes not.
+    % Since we need 4 numbers an not an array avoid BBox from being executed
+    /FontBBox load aload pop
+    FontMatrix transform /Ascent exch def pop
+    FontMatrix transform /Descent exch def pop
+    /FontHeight Ascent Descent sub def
+
+    % Define these in case they're not in the FontInfo (also, here
+    % they're easier to get to.
+    /UnderlinePosition 1 def
+    /UnderlineThickness 1 def
+    
+    % Get the underline position and thickness if they're defined.
+    currentdict /FontInfo known {
+      FontInfo
+      
+      dup /UnderlinePosition known {
+	dup /UnderlinePosition get
+	0 exch FontMatrix transform exch pop
+	/UnderlinePosition exch def
+      } if
+      
+      dup /UnderlineThickness known {
+	/UnderlineThickness get
+	0 exch FontMatrix transform exch pop
+	/UnderlineThickness exch def
+      } if
+      
+    } if
+    currentdict 
+  end 
+} bind def
+
+% composite fonts for ASCII-EUC mixed string
+% Version 1.2 1/31/1990
+% Orignal Ken'ichi HANDA (handa@etl.go.jp)
+% Modified Norio Katayama (katayama@rd.nacsis.ac.jp),1998
+% Extend & Fix Koji Nakamaru (maru@on.cs.keio.ac.jp), 1999
+% Anyone can freely copy, modify, distribute this program.
+
+/copyfont {	% font-dic extra-entry-count  copyfont  font-dic
+	1 index maxlength add dict begin
+	{	1 index /FID ne 2 index /UniqueID ne and
+		{def} {pop pop} ifelse
+	} forall
+	currentdict
+	end
+} bind def
+
+/compositefont { % ASCIIFontName EUCFontName RomanScale RomanOffset Rot(T/F) compositefont font
+    /RomanRotation exch def
+    /RomanOffset exch def
+    /RomanScale exch def
+    userdict /fixeucfont_dict known not {
+	userdict begin
+	    /fixeucfont_dict 2 dict begin
+		/UpperByteEncoding [
+		    16#00 1 16#20 { pop 0 } for
+		    16#21 1 16#28 { 16#20 sub } for
+		    16#29 1 16#2F { pop 0 } for
+		    16#30 1 16#74 { 16#27 sub } for
+		    16#75 1 16#FF { pop 0 } for
+		] def
+	        /LowerByteEncoding [
+		    16#00 1 16#A0 { pop /.notdef } for
+		    16#A1 1 16#FE { 16#80 sub 16 2 string cvrs
+				    (cXX) dup 1 4 -1 roll
+				    putinterval cvn } for
+		    /.notdef
+		] def
+		currentdict
+	    end def
+	end
+    } if
+    findfont dup /FontType get 0 eq {
+	14 dict begin
+	    %
+	    % 7+8 bit EUC font
+	    %
+	    12 dict begin
+		/EUCFont exch def
+		/FontInfo (7+8 bit EUC font) readonly def
+		/PaintType 0 def
+		/FontType 0 def
+		/FontMatrix matrix def
+		% /FontName
+		/Encoding fixeucfont_dict /UpperByteEncoding get def
+		/FMapType 2 def
+		EUCFont /WMode known
+		{ EUCFont /WMode get /WMode exch def }
+		{ /WMode 0 def } ifelse
+		/FDepVector [
+		    EUCFont /FDepVector get 0 get
+		    [ 16#21 1 16#28 {} for 16#30 1 16#74 {} for ]
+		    {
+			13 dict begin
+			    /EUCFont EUCFont def
+			    /UpperByte exch 16#80 add def	
+			    % /FontName
+			    /FontInfo (EUC lower byte font) readonly def
+			    /PaintType 0 def
+			    /FontType 3 def
+			    /FontMatrix matrix def
+			    /FontBBox {0 0 0 0} def
+			    /Encoding
+				fixeucfont_dict /LowerByteEncoding get def
+			    % /UniqueID
+			    % /WMode
+			    /BuildChar {
+				gsave
+				exch dup /EUCFont get setfont
+				/UpperByte get
+				2 string
+				dup 0 4 -1 roll put
+				dup 1 4 -1 roll put
+				dup stringwidth setcharwidth
+				0 0 moveto show
+				grestore
+			    } bind def
+			    currentdict
+			end
+			/lowerbytefont exch definefont
+		    } forall
+		] def
+		currentdict
+	    end
+	    /eucfont exch definefont
+	    exch
+	    findfont 1 copyfont dup begin
+		RomanRotation {
+			/FontMatrix FontMatrix
+			[ 0 RomanScale neg RomanScale 0 RomanOffset neg 0 ]
+			matrix concatmatrix def
+		}{
+			/FontMatrix FontMatrix
+			[ RomanScale 0 0 RomanScale 0 RomanOffset ] matrix concatmatrix
+			def
+			/CDevProc
+			    {pop pop pop pop 0 exch -1000 exch 2 div 880} def
+		} ifelse
+	    end
+	    /asciifont exch definefont
+	    exch
+	    /FDepVector [ 4 2 roll ] def
+	    /FontType 0 def
+	    /WMode 0 def
+	    /FMapType 4 def
+	    /FontMatrix matrix def
+	    /Encoding [0 1] def
+	    /FontBBox {0 0 0 0} def
+%	    /FontHeight 1.0 def % XXXX
+	    /FontHeight RomanScale 1.0 ge { RomanScale }{ 1.0 } ifelse def
+	    /Descent -0.3 def   % XXXX
+	    currentdict
+	end
+	/tmpfont exch definefont
+	pop
+	/tmpfont findfont
+    }{
+	pop findfont 0 copyfont
+    } ifelse
+} def	
+
+/slantfont {	% FontName slant-degree  slantfont  font'
+    exch findfont 1 copyfont begin
+    [ 1 0 4 -1 roll 1 0 0 ] FontMatrix exch matrix concatmatrix
+    /FontMatrix exch def
+    currentdict
+    end
+} def
+
+% Function print line number (<string> # -)
+/# {
+  gsave
+    sx cw mul neg 2 div 0 rmoveto
+    f# setfont
+    c-show
+  grestore
+} bind def
+
+% -------- Some routines to enlight plain b/w printings ---------
+
+% Underline
+% width --
+/dounderline {
+  currentpoint
+  gsave
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    0 rlineto
+    stroke
+  grestore
+} bind def
+
+% Underline a string
+% string --
+/dounderlinestring {
+  stringwidth pop
+  dounderline
+} bind def
+
+/UL {
+  /ul exch store
+} bind def
+
+% Draw a box of WIDTH wrt current font
+% width --
+/dobox {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    stroke
+  grestore
+} bind def
+
+/BX {
+  /bx exch store
+} bind def
+
+% Box a string
+% string --
+/doboxstring {
+  stringwidth pop
+  dobox
+} bind def
+
+%
+% ------------- Color routines ---------------
+%
+/FG /setrgbcolor load def
+
+% Draw the background
+% width --
+/dobackground {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    bgcolor aload pop setrgbcolor
+    fill
+  grestore
+} bind def
+
+% Draw bg for a string
+% string --
+/dobackgroundstring {
+  stringwidth pop
+  dobackground
+} bind def
+
+
+/BG {
+  dup /bg exch store
+  { mark 4 1 roll ] /bgcolor exch store } if
+} bind def
+
+
+/Show {
+  bg { dup dobackgroundstring } if
+  ul { dup dounderlinestring } if
+  bx { dup doboxstring } if
+  show
+} bind def
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T {
+  cw mul x0 add
+  bg { dup currentpoint pop sub dobackground } if
+  ul { dup currentpoint pop sub dounderline } if
+  bx { dup currentpoint pop sub dobox } if
+  y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n {
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+/S {
+  Show
+} bind def
+
+%%BeginResource: procset a2ps-a2ps-hdr 2.0 2
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Function title: prints page header.
+% <ct> <rt> <lt> are passed as argument
+/title { 
+  % 1. Draw the background
+  x v get y v get moveto
+  gsave
+    0 th 2 div neg rmoveto 
+    th setlinewidth
+    0.95 setgray
+    pw 0 rlineto stroke
+  grestore
+  % 2. Border it
+  gsave
+    0.7 setlinewidth
+    pw 0 rlineto
+    0 th neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+  % stk: ct rt lt
+  x v get y v get th sub 1 add moveto
+%%IncludeResource: font Helvetica
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  % 3. The left title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    fnfs 0.8 mul hm rmoveto
+    show			% left title
+  grestore
+  exch
+  % stk: ct ltw rt
+  % 4. the right title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    dup
+    pw exch stringwidth pop fnfs 0.8 mul add sub
+    hm
+    rmoveto
+    show			% right title
+  grestore
+  % stk: ct ltw rtw
+  % 5. the center title
+  gsave
+    pw 3 1 roll
+    % stk: ct pw ltw rtw
+    3 copy 
+    % Move to the center of the left room
+    sub add 2 div hm rmoveto
+    % What is the available space in here?
+    add sub fnfs 0.8 mul sub fnfs 0.8 mul sub
+    % stk: ct space_left
+%%IncludeResource: font Helvetica-Bold
+  fHelvetica-Bold fnfs scalefont setfont
+    cfshow
+  grestore
+} bind def
+
+% Function border: prints virtual page border
+/border { %def
+  gsave				% print four sides
+    0 setgray
+    x v get y v get moveto
+    0.7 setlinewidth		% of the square
+    pw 0 rlineto
+    0 ph neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+} bind def
+
+% Function water: prints a water mark in background
+/water { %def
+  gsave
+    scx scy moveto rotate
+%%IncludeResource: font Times-Bold
+  fTimes-Bold 100 scalefont setfont
+    .97 setgray
+    dup stringwidth pop 2 div neg -50 rmoveto
+    show
+  grestore
+} bind def
+
+% Function rhead: prints the right header
+/rhead {  %def
+  lx ly moveto
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  l-show
+} bind def
+
+% Function footer (cf rf lf -> -)
+/footer {
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  dx dy moveto
+  show
+
+  snx sny moveto
+  l-show
+  
+  fnx fny moveto
+  c-show
+} bind def
+%%EndResource
+%%BeginResource: procset a2ps-black+white-Prolog 2.0 1
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T { 
+  cw mul x0 add y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n { %def
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+}  bind def
+
+/S {
+  Show
+} bind def
+
+/p {
+  false UL
+  false BX
+  fCourier bfs scalefont setfont
+  Show
+} bind def
+
+/sy {
+  false UL
+  false BX
+  fSymbol bfs scalefont setfont
+  Show
+} bind def
+
+/k {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/K {
+  false UL
+  false BX
+  fCourier-Bold bfs scalefont setfont
+  Show
+} bind def
+
+/c {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/C {
+  false UL
+  false BX
+  fCourier-BoldOblique bfs scalefont setfont
+  Show 
+} bind def
+
+/l {
+  false UL
+  false BX
+  fHelvetica bfs scalefont setfont
+  Show
+} bind def
+
+/L {
+  false UL
+  false BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show 
+} bind def
+
+/str{
+  false UL
+  false BX
+  fTimes-Roman bfs scalefont setfont
+  Show
+} bind def
+
+/e{
+  false UL
+  true BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show
+} bind def
+
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier
+%%IncludeResource: font Courier-Oblique
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Times-Roman
+%%IncludeResource: font Symbol
+%%IncludeResource: font Courier-BoldOblique
+%%BeginResource: encoding ISO-8859-1Encoding
+/ISO-8859-1Encoding [
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclam /quotedbl /numbersign /dollar /percent /ampersand /quoteright 
+/parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+/zero /one /two /three /four /five /six /seven 
+/eight /nine /colon /semicolon /less /equal /greater /question 
+/at /A /B /C /D /E /F /G 
+/H /I /J /K /L /M /N /O 
+/P /Q /R /S /T /U /V /W 
+/X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+/quoteleft /a /b /c /d /e /f /g 
+/h /i /j /k /l /m /n /o 
+/p /q /r /s /t /u /v /w 
+/x /y /z /braceleft /bar /braceright /asciitilde /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+/dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron 
+/degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph /bullet 
+/cedilla /onesuperior /ordmasculine /guillemotright /onequarter /onehalf /threequarters /questiondown 
+/Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+/Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis 
+/Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+/Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls 
+/agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+/egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis 
+/eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+/oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn /ydieresis 
+] def
+%%EndResource
+% Initialize page description variables.
+/sh 612 def
+/sw 792 def
+/llx 24 def
+/urx 768 def
+/ury 588 def
+/lly 24 def
+/#copies 1 def
+/th 15.000000 def
+/fnfs 11 def
+/bfs 7.493857 def
+/cw 4.496314 def
+
+% Dictionary for ISO-8859-1 support
+/iso1dict 8 dict begin
+  /fCourier ISO-8859-1Encoding /Courier reencode_font
+  /fCourier-Bold ISO-8859-1Encoding /Courier-Bold reencode_font
+  /fCourier-BoldOblique ISO-8859-1Encoding /Courier-BoldOblique reencode_font
+  /fCourier-Oblique ISO-8859-1Encoding /Courier-Oblique reencode_font
+  /fHelvetica ISO-8859-1Encoding /Helvetica reencode_font
+  /fHelvetica-Bold ISO-8859-1Encoding /Helvetica-Bold reencode_font
+  /fTimes-Bold ISO-8859-1Encoding /Times-Bold reencode_font
+  /fTimes-Roman ISO-8859-1Encoding /Times-Roman reencode_font
+currentdict end def
+/bgcolor [ 0 0 0 ] def
+/bg false def
+/ul false def
+/bx false def
+% The font for line numbering
+/f# /Helvetica findfont bfs .6 mul scalefont def
+/fSymbol /Symbol findfont def
+/hm fnfs 0.25 mul def
+/pw
+   cw 81.400000 mul
+def
+/ph
+   522.321860 th add
+def
+/pmw urx llx sub pw 2 mul sub 1 div def
+/pmh 0 def
+/v 0 def
+/x [
+  0
+  dup pmw add pw add
+] def
+/y [
+  pmh ph add 0 mul ph add
+  dup
+] def
+/scx sw 2 div def
+/scy sh 2 div def
+/snx urx def
+/sny lly 2 add def
+/dx llx def
+/dy sny def
+/fnx scx def
+/fny dy def
+/lx snx def
+/ly ury fnfs 0.8 mul sub def
+/sx 0 def
+/tab 8 def
+/x0 0 def
+/y0 0 def
+%%EndSetup
+
+%%Page: (1-2) 1
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(/*========================================================================) c n
+(               Copyright \(C\) 1996-2001 by Jorn Lind-Nielsen) N
+(                            All rights reserved) N
+() N
+(    Permission is hereby granted, without written agreement and without) N
+(    license or royalty fees, to use, reproduce, prepare derivative) N
+(    works, distribute, and display this software and its documentation) N
+(    for any purpose, provided that \(1\) the above copyright notice and) N
+(    the following two paragraphs appear in all copies of the source code) N
+(    and \(2\) redistributions, including without limitation binaries,) N
+(    reproduce these notices in the supporting documentation. Substantial) N
+(    modifications to this software may be copyrighted by their authors) N
+(    and need not follow the licensing terms described here, provided) N
+(    that the new terms are clearly indicated in all files where they apply.) N
+() N
+(    IN NO EVENT SHALL JORN LIND-NIELSEN, OR DISTRIBUTORS OF THIS) N
+(    SOFTWARE BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL,) N
+(    INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OF THIS) N
+(    SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE AUTHORS OR ANY OF THE) N
+(    ABOVE PARTIES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.) N
+() N
+(    JORN LIND-NIELSEN SPECIFICALLY DISCLAIM ANY WARRANTIES, INCLUDING,) N
+(    BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND) N
+(    FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS) N
+(    ON AN "AS IS" BASIS, AND THE AUTHORS AND DISTRIBUTORS HAVE NO) N
+(    OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR) N
+(    MODIFICATIONS.) N
+(========================================================================*/) N
+() p n
+(#include) K
+( <string>) p n
+(#include) K
+( ") p
+(bdd.h) str
+(") p n
+() N
+(using) K
+( ) p
+(namespace) K
+( std;) p n
+() N
+() N
+(#define) K
+( ERROR\(msg\) fail\(msg, __FILE__, __LINE__\)) p n
+() N
+(static) K
+( ) p
+(void) k
+( fail\() p
+(const) K
+( string msg, ) p
+(const) K
+( ) p
+(char) k
+(* file, ) p
+(int) k
+( lineNum\)) p n
+({) N
+(  cout << ") S
+(Error in ) str
+(" << file << ") p
+(\() str
+(" << lineNum << ") p
+(\): ) str
+(" << msg << endl;) p n
+(  exit\(1\);) N
+(}) N
+() N
+() N
+(static) K
+( ) p
+(void) k
+( testSupport\() p
+(void) k
+(\)) p n
+({) N
+(  bdd even = bdd_ithvar\(0\) | bdd_ithvar\(2\) | bdd_ithvar\(4\);) N
+(  bdd odd  = bdd_ithvar\(1\) | bdd_ithvar\(3\) | bdd_ithvar\(5\);) N
+() N
+(  cout << ") S
+(Testing support\\n) str
+(";) p n
+(  ) N
+(  bdd s1 = bdd_support\(even\);) N
+(  bdd s2 = bdd_support\(odd\);) N
+() N
+(  ) S
+(if) K
+( \(s1 != \(bdd_ithvar\(0\) & bdd_ithvar\(2\) & bdd_ithvar\(4\)\)\)) p n
+(    ERROR\(") S
+(Support of 'even' failed\\n) str
+("\);) p n
+(  ) S
+(if) K
+( \(s2 != \(bdd_ithvar\(1\) & bdd_ithvar\(3\) & bdd_ithvar\(5\)\)\)) p n
+(    ERROR\(") S
+(Support of 'odd' failed\\n) str
+("\);) p n
+() N
+(  ) S
+(/* Try many time in order check that the internal support ID) c n
+(   * is set correctly */) N
+(  ) p
+(for) K
+( \() p
+(int) k
+( n=0 ; n<500 ; ++n\)) p n
+(  {) N
+(    s1 = bdd_support\(even\);) N
+(    s2 = bdd_support\(odd\);) N
+() N
+(    ) S
+(if) K
+( \(s1 != \(bdd_ithvar\(0\) & bdd_ithvar\(2\) & bdd_ithvar\(4\)\)\)) p n
+(      ERROR\(") S
+(Support of 'even' failed) str
+("\);) p n
+(    ) S
+(if) K
+( \(s2 != \(bdd_ithvar\(1\) & bdd_ithvar\(3\) & bdd_ithvar\(5\)\)\)) p n
+(bddtest.cxx) (Page 1/2) (Mar 24, 04 21:35) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(      ERROR\(") p
+(Support of 'odd' failed) str
+("\);) p n
+(  }) N
+(}) N
+() N
+() N
+(int) k
+( main\() p
+(int) k
+( ac, ) p
+(char) k
+(** av\)) p n
+({) N
+(  bdd_init\(1000,1000\);) N
+() N
+(  bdd_setvarnum\(10\);) N
+() N
+(  testSupport\(\);) N
+() N
+(  bdd_done\(\);) N
+(  ) S
+(return) K
+( 0;) p n
+(}) N
+(bddtest.cxx) (Page 2/2) (Mar 24, 04 21:35) title
+border
+grestore
+(Printed by Rune M. Jensen) rhead
+(bddtest.cxx) (1/7) (Wednesday March 24, 2004) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1-2) 2
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(/*========================================================================) c n
+(               Copyright \(C\) 1996-2001 by Jorn Lind-Nielsen) N
+(                            All rights reserved) N
+() N
+(    Permission is hereby granted, without written agreement and without) N
+(    license or royalty fees, to use, reproduce, prepare derivative) N
+(    works, distribute, and display this software and its documentation) N
+(    for any purpose, provided that \(1\) the above copyright notice and) N
+(    the following two paragraphs appear in all copies of the source code) N
+(    and \(2\) redistributions, including without limitation binaries,) N
+(    reproduce these notices in the supporting documentation. Substantial) N
+(    modifications to this software may be copyrighted by their authors) N
+(    and need not follow the licensing terms described here, provided) N
+(    that the new terms are clearly indicated in all files where they apply.) N
+() N
+(    IN NO EVENT SHALL JORN LIND-NIELSEN, OR DISTRIBUTORS OF THIS) N
+(    SOFTWARE BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL,) N
+(    INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OF THIS) N
+(    SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE AUTHORS OR ANY OF THE) N
+(    ABOVE PARTIES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.) N
+() N
+(    JORN LIND-NIELSEN SPECIFICALLY DISCLAIM ANY WARRANTIES, INCLUDING,) N
+(    BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND) N
+(    FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS) N
+(    ON AN "AS IS" BASIS, AND THE AUTHORS AND DISTRIBUTORS HAVE NO) N
+(    OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR) N
+(    MODIFICATIONS.) N
+(========================================================================*/) N
+() p n
+(/*************************************************************************) c n
+(  $Header: /home/jln/phd/bdd/src/RCS/cppext.cxx,v 1.3 2000/05/17 20:00:05 jln Ex) N
+(p jln $) N
+(  FILE:  cppext.cxx) N
+(  DESCR: C++ extension of BDD package) N
+(  AUTH:  Jorn Lind) N
+(  DATE:  \(C\) august 1997) N
+(*************************************************************************/) N
+(#include) K
+( <string.h>) p n
+(#include) K
+( <stdlib.h>) p n
+(#include) K
+( <iomanip>) p n
+(#include) K
+( ") p
+(kernel.h) str
+(") p n
+(#include) K
+( ") p
+(bvec.h) str
+(") p n
+() N
+(using) K
+( ) p
+(namespace) K
+( std;) p n
+() N
+(   ) S
+(/* Formatting objects for iostreams */) c n
+(#define) K
+( IOFORMAT_SET    0) p n
+(#define) K
+( IOFORMAT_TABLE  1) p n
+(#define) K
+( IOFORMAT_DOT    2) p n
+(#define) K
+( IOFORMAT_ALL    3) p n
+(#define) K
+( IOFORMAT_FDDSET 4) p n
+() N
+(int) k
+( bdd_ioformat::curformat = IOFORMAT_SET;) p n
+(bdd_ioformat bddset\(IOFORMAT_SET\);) N
+(bdd_ioformat bddtable\(IOFORMAT_TABLE\);) N
+(bdd_ioformat bdddot\(IOFORMAT_DOT\);) N
+(bdd_ioformat bddall\(IOFORMAT_ALL\);) N
+(bdd_ioformat fddset\(IOFORMAT_FDDSET\);) N
+() N
+(   ) S
+(/* Constant true and false extension */) c n
+(const) K
+( bdd bddtruepp = bdd_true\(\);) p n
+(const) K
+( bdd bddfalsepp = bdd_false\(\);) p n
+() N
+(   ) S
+(/* Internal prototypes */) c n
+(static) K
+( ) p
+(void) k
+( bdd_printset_rec\(ostream&, ) p
+(int) k
+(, ) p
+(int) k
+(*\);) p n
+(static) K
+( ) p
+(void) k
+( bdd_printdot_rec\(ostream&, ) p
+(int) k
+(\);) p n
+(static) K
+( ) p
+(void) k
+( fdd_printset_rec\(ostream &, ) p
+(int) k
+(, ) p
+(int) k
+( *\);) p n
+() N
+() N
+(cppext.cxx) (Page 1/9) (Mar 24, 04 21:35) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(static) K
+( bddstrmhandler strmhandler_bdd;) p n
+(static) K
+( bddstrmhandler strmhandler_fdd;) p n
+() N
+(   ) S
+(// Avoid calling C++ version of anodecount) c n
+(#undef) K
+( bdd_anodecount) p n
+() N
+(/*************************************************************************) c n
+(  Setup \(and shutdown\)) N
+(*************************************************************************/) N
+() p n
+(#undef) K
+( bdd_init) p n
+() N
+(int) k
+( bdd_cpp_init\() p
+(int) k
+( n, ) p
+(int) k
+( c\)) p n
+({) N
+(   ) S
+(int) k
+( ok = bdd_init\(n,c\);) p n
+(   ) N
+(   strmhandler_bdd = ) S
+(NULL) K
+(;) p n
+(   strmhandler_fdd = ) S
+(NULL) K
+(;) p n
+() N
+(   ) S
+(return) K
+( ok;) p n
+(}) N
+() N
+() N
+(/*************************************************************************) c n
+(  BDD C++ functions) N
+(*************************************************************************/) N
+() p n
+(bdd bdd_buildcube\() S
+(int) k
+( val, ) p
+(int) k
+( width, ) p
+(const) K
+( bdd *variables\)) p n
+({) N
+(   BDD *var = NEW\(BDD,width\);) N
+(   BDD res;) N
+(   ) S
+(int) k
+( n;) p n
+() N
+(      ) S
+(// No need for ref.cou. since variables[n] holds the reference) c n
+(   ) p
+(for) K
+( \(n=0 ; n<width ; n++\)) p n
+(      var[n] = variables[n].root;) N
+() N
+(   res = bdd_buildcube\(val, width, var\);) N
+() N
+(   free\(var\);) N
+() N
+(   ) S
+(return) K
+( res;) p n
+(}) N
+() N
+() N
+(int) k
+( bdd_setbddpairs\(bddPair *pair, ) p
+(int) k
+( *oldvar, ) p
+(const) K
+( bdd *newvar, ) p
+(int) k
+( size\)) p n
+({) N
+(   ) S
+(if) K
+( \(pair == ) p
+(NULL) K
+(\)) p n
+(      ) S
+(return) K
+( 0;) p n
+(   ) N
+(   ) S
+(for) K
+( \() p
+(int) k
+( n=0,e=0 ; n<size ; n++\)) p n
+(      ) S
+(if) K
+( \(\(e=bdd_setbddpair\(pair, oldvar[n], newvar[n].root\)\) < 0\)) p n
+() S 8 T ( ) S
+(return) K
+( e;) p n
+(   ) N
+(   ) S
+(return) K
+( 0;) p n
+(}) N
+() N
+() N
+(int) k
+( bdd_anodecountpp\() p
+(const) K
+( bdd *r, ) p
+(int) k
+( num\)) p n
+({) N
+(   BDD *cpr = NEW\(BDD,num\);) N
+(   ) S
+(int) k
+( cou;) p n
+(   ) S
+(int) k
+( n;) p n
+() N
+(      ) S
+(// No need for ref.cou. since r[n] holds the reference) c n
+(   ) p
+(for) K
+( \(n=0 ; n<num ; n++\)) p n
+(      cpr[n] = r[n].root;) N
+() N
+(   cou = bdd_anodecount\(cpr,num\);) N
+(cppext.cxx) (Page 2/9) (Mar 24, 04 21:35) title
+border
+grestore
+(Printed by Rune M. Jensen) rhead
+(cppext.cxx) (2/7) (Wednesday March 24, 2004) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3-4) 3
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(   ) p n
+(   free\(cpr\);) N
+() N
+(   ) S
+(return) K
+( cou;) p n
+(}) N
+() N
+(/*************************************************************************) c n
+(  BDD class functions) N
+(*************************************************************************/) N
+() p n
+(bdd bdd::) S
+(operator) K
+(=\() p
+(const) K
+( bdd &r\)) p n
+({) N
+(   ) S
+(if) K
+( \(root != r.root\)) p n
+(   {) N
+(      bdd_delref\(root\);) N
+(      root = r.root;) N
+(      bdd_addref\(root\);) N
+(   }) N
+(   ) S
+(return) K
+( *) p
+(this) K
+(;) p n
+(}) N
+() N
+() N
+(bdd bdd::) S
+(operator) K
+(=\() p
+(int) k
+( r\)) p n
+({) N
+(   ) S
+(if) K
+( \(root != r\)) p n
+(   {) N
+(      bdd_delref\(root\);) N
+(      root = r;) N
+(      bdd_addref\(root\);) N
+(   }) N
+(   ) S
+(return) K
+( *) p
+(this) K
+(;) p n
+(}) N
+() N
+() N
+(/*************************************************************************) c n
+(  C++ iostream operators) N
+(*************************************************************************/) N
+() p n
+(/*) c n
+(NAME    {* bdd\\_strm\\_hook *}) N
+(SECTION {* kernel *}) N
+(SHORT   {* Specifies a printing callback handler *}) N
+(PROTO   {* bddstrmhandler bdd_strm_hook\(bddstrmhandler handler\) *}) N
+(DESCR   {* A printing callback handler for use with BDDs is used to) N
+(           convert the BDD variable number into something readable by the) N
+() S 8 T (   end user. Typically the handler will print a string name) N
+() S 8 T (   instead of the number. A handler could look like this:) N
+() S 8 T (   \\begin{verbatim}) N
+(void printhandler\(ostream &o, int var\)) N
+({) N
+(   extern char **names;) N
+(   o << names[var];) N
+(}) N
+(\\end{verbatim}) N
+() N
+(           \\noindent) N
+(           The handler can then be passed to BuDDy like this:) N
+() S 8 T (   {\\tt bdd\\_strm\\_hook\(printhandler\)}.) N
+() N
+() S 8 T (   No default handler is supplied. The argument {\\tt handler} may be) N
+() S 8 T (   NULL if no handler is needed. *}) N
+(RETURN  {* The old handler *}) N
+(ALSO    {* bdd\\_printset, bdd\\_file\\_hook, fdd\\_strm\\_hook *}) N
+(*/) N
+(bddstrmhandler bdd_strm_hook\(bddstrmhandler handler\)) p n
+({) N
+(   bddstrmhandler old = strmhandler_bdd;) N
+(   strmhandler_bdd = handler;) N
+(   ) S
+(return) K
+( old;) p n
+(cppext.cxx) (Page 3/9) (Mar 24, 04 21:35) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(}) p n
+() N
+() N
+(ostream &) S
+(operator) K
+(<<\(ostream &o, ) p
+(const) K
+( bdd &r\)) p n
+({) N
+(   ) S
+(if) K
+( \(bdd_ioformat::curformat == IOFORMAT_SET\)) p n
+(   {) N
+(      ) S
+(if) K
+( \(r.root < 2\)) p n
+(      {) N
+() S 8 T ( o << \(r.root == 0 ? ") S
+(F) str
+(" : ") p
+(T) str
+("\);) p n
+() S 8 T ( ) S
+(return) K
+( o;) p n
+(      }) N
+(      ) N
+(      ) S
+(int) k
+( *set = ) p
+(new) K
+( ) p
+(int) k
+([bddvarnum];) p n
+(      ) S
+(if) K
+( \(set == ) p
+(NULL) K
+(\)) p n
+(      {) N
+() S 8 T ( bdd_error\(BDD_MEMORY\);) N
+() S 8 T ( ) S
+(return) K
+( o;) p n
+(      }) N
+(      ) N
+(      memset\(set, 0, ) S
+(sizeof) K
+(\() p
+(int) k
+(\) * bddvarnum\);) p n
+(      bdd_printset_rec\(o, r.root, set\);) N
+(      ) S
+(delete) K
+([] set;) p n
+(   }) N
+(   ) S
+(else) K n
+(   ) p
+(if) K
+( \(bdd_ioformat::curformat == IOFORMAT_TABLE\)) p n
+(   {) N
+(      o << ") S
+(ROOT: ) str
+(" << r.root << ") p
+(\\n) str
+(";) p n
+(      ) S
+(if) K
+( \(r.root < 2\)) p n
+() S 8 T ( ) S
+(return) K
+( o;) p n
+(      ) N
+(      bdd_mark\(r.root\);) N
+() N
+(      ) S
+(for) K
+( \() p
+(int) k
+( n=0 ; n<bddnodesize ; n++\)) p n
+(      {) N
+() S 8 T ( ) S
+(if) K
+( \(LEVEL\(n\) & MARKON\)) p n
+() S 8 T ( {) N
+() S 8 T (    BddNode *node = &bddnodes[n];) N
+() S 8 T ( ) N
+() S 8 T (    LEVELp\(node\) &= MARKOFF;) N
+() N
+() S 8 T (    o << ") S
+([) str
+(" << setw\(5\) << n << ") p
+(] ) str
+(";) p n
+() S 8 T (    ) S
+(if) K
+( \(strmhandler_bdd\)) p n
+() S 8 T (       strmhandler_bdd\(o,bddlevel2var[LEVELp\(node\)]\);) N
+() S 8 T (    ) S
+(else) K n
+() p 8 T (       o << setw\(3\) << bddlevel2var[LEVELp\(node\)];) N
+() S 8 T (    o << ") S
+( :) str
+(";) p n
+() S 8 T (    o << ") S
+( ) str
+(" << setw\(3\) << LOWp\(node\);) p n
+() S 8 T (    o << ") S
+( ) str
+(" << setw\(3\) << HIGHp\(node\);) p n
+() S 8 T (    o << ") S
+(\\n) str
+(";) p n
+() S 8 T ( }) N
+(      }) N
+(   }) N
+(   ) S
+(else) K n
+(   ) p
+(if) K
+( \(bdd_ioformat::curformat == IOFORMAT_DOT\)) p n
+(   {) N
+(      o << ") S
+(digraph G {\\n) str
+(";) p n
+(      o << ") S
+(0 [shape=box, label=\\"0\\", style=filled, shape=box, height=0.3, width=0.3];\\n) str
+(";) p n
+(      o << ") S
+(1 [shape=box, label=\\"1\\", style=filled, shape=box, height=0.3, width=0.3];\\n) str
+(";) p n
+(      ) N
+(      bdd_printdot_rec\(o, r.root\);) N
+(      ) N
+(      o << ") S
+(}\\n) str
+(";) p n
+() N
+(      bdd_unmark\(r.root\);) N
+(   }) N
+(   ) S
+(else) K n
+(   ) p
+(if) K
+( \(bdd_ioformat::curformat == IOFORMAT_FDDSET\)) p n
+(   {) N
+(cppext.cxx) (Page 4/9) (Mar 24, 04 21:35) title
+border
+grestore
+(Printed by Rune M. Jensen) rhead
+(cppext.cxx) (3/7) (Wednesday March 24, 2004) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (5-6) 4
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(      ) p
+(if) K
+( \(ISCONST\(r.root\)\)) p n
+(      {) N
+() S 8 T ( o << \(r == 0 ? ") S
+(F) str
+(" : ") p
+(T) str
+("\);) p n
+() S 8 T ( ) S
+(return) K
+( o;) p n
+(      }) N
+(      ) N
+(      ) S
+(int) k
+( *set = ) p
+(new) K
+( ) p
+(int) k
+([bddvarnum];) p n
+(      ) S
+(if) K
+( \(set == ) p
+(NULL) K
+(\)) p n
+(      {) N
+() S 8 T ( bdd_error\(BDD_MEMORY\);) N
+() S 8 T ( ) S
+(return) K
+( o;) p n
+(      }) N
+(      ) N
+(      memset\(set, 0, ) S
+(sizeof) K
+(\() p
+(int) k
+(\) * bddvarnum\);) p n
+(      fdd_printset_rec\(o, r.root, set\);) N
+(      ) S
+(delete) K
+([] set;) p n
+(   }) N
+(   ) N
+(   ) S
+(return) K
+( o;) p n
+(}) N
+() N
+() N
+(/*) c n
+(NAME    {* operator{\\tt<<} *}) N
+(SECTION {* fileio *}) N
+(SHORT   {* C++ output operator for BDDs *}) N
+(PROTO   {* ostream &operator<<\(ostream &o, const bdd_ioformat &f\)) N
+(ostream &operator<<\(ostream &o, const bdd &r\) *}) N
+(DESCR   {* BDDs can be printed in various formats using the C++ iostreams) N
+(           library. The formats are the those used in {\\tt bdd\\_printset},) N
+() S 8 T (   {\\tt bdd\\_printtable}, {\\tt fdd\\_printset} and {\\tt bdd\\_printdot}.) N
+() S 8 T (   The format can be specified with the following format objects:) N
+() S 8 T (   \\begin{tabular}{ll}\\\\) N
+() S 8 T (     {\\tt bddset } & BDD level set format \\\\) N
+() S 8 T (     {\\tt bddtable } & BDD level table format \\\\) N
+() S 8 T (     {\\tt bdddot }   & Output for use with Dot \\\\) N
+() S 8 T (     {\\tt bddall }   & The whole node table \\\\) N
+() S 8 T (     {\\tt fddset }   & FDD level set format \\\\) N
+() S 8 T (   \\end{tabular}\\\\) N
+() N
+() S 8 T (   \\noindent) N
+() S 8 T (   So a BDD {\\tt x} can for example be printed as a table with the) N
+() S 8 T (   command\\\\) N
+() N
+() S 8 T (   \\indent {\\tt cout << bddtable << x << endl}.) N
+() S 8 T (   *}) N
+(RETURN  {* The specified output stream *}) N
+(ALSO    {* bdd\\_strm\\_hook, fdd\\_strm\\_hook *}) N
+(*/) N
+(ostream &) p
+(operator) K
+(<<\(ostream &o, ) p
+(const) K
+( bdd_ioformat &f\)) p n
+({) N
+(   ) S
+(if) K
+( \(f.format == IOFORMAT_SET  ||  f.format == IOFORMAT_TABLE  ||) p n
+(       f.format == IOFORMAT_DOT  ||  f.format == IOFORMAT_FDDSET\)) N
+(      bdd_ioformat::curformat = f.format;) N
+(   ) S
+(else) K n
+(   ) p
+(if) K
+( \(f.format == IOFORMAT_ALL\)) p n
+(   {) N
+(      ) S
+(for) K
+( \() p
+(int) k
+( n=0 ; n<bddnodesize ; n++\)) p n
+(      {) N
+() S 8 T ( ) S
+(const) K
+( BddNode *node = &bddnodes[n];) p n
+() S 8 T ( ) N
+() S 8 T ( ) S
+(if) K
+( \(LOWp\(node\) != -1\)) p n
+() S 8 T ( {) N
+() S 8 T (    o << ") S
+([) str
+(" << setw\(5\) << n << ") p
+(] ) str
+(";) p n
+() S 8 T (    ) S
+(if) K
+( \(strmhandler_bdd\)) p n
+() S 8 T (       strmhandler_bdd\(o,bddlevel2var[LEVELp\(node\)]\);) N
+() S 8 T (    ) S
+(else) K n
+() p 8 T (       o << setw\(3\) << bddlevel2var[LEVELp\(node\)] << ") S
+( :) str
+(";) p n
+() S 8 T (    o << ") S
+( ) str
+(" << setw\(3\) << LOWp\(node\);) p n
+(cppext.cxx) (Page 5/9) (Mar 24, 04 21:35) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T (    o << ") S
+( ) str
+(" << setw\(3\) << HIGHp\(node\);) p n
+() S 8 T (    o << ") S
+(\\n) str
+(";) p n
+() S 8 T ( }) N
+(      }) N
+(   }) N
+(   ) N
+(   ) S
+(return) K
+( o;) p n
+(}) N
+() N
+() N
+(static) K
+( ) p
+(void) k
+( bdd_printset_rec\(ostream& o, ) p
+(int) k
+( r, ) p
+(int) k
+(* set\)) p n
+({) N
+(   ) S
+(int) k
+( n;) p n
+(   ) S
+(int) k
+( first;) p n
+(   ) N
+(   ) S
+(if) K
+( \(r == 0\)) p n
+(      ) S
+(return) K
+(;) p n
+(   ) S
+(else) K n
+(   ) p
+(if) K
+( \(r == 1\)) p n
+(   {) N
+(      o << ") S
+(<) str
+(";) p n
+(      first = 1;) N
+(      ) N
+(      ) S
+(for) K
+( \(n=0 ; n<bddvarnum ; n++\)) p n
+(      {) N
+() S 8 T ( ) S
+(if) K
+( \(set[n] > 0\)) p n
+() S 8 T ( {) N
+() S 8 T (    ) S
+(if) K
+( \(!first\)) p n
+() S 8 T (       o << ") S
+(, ) str
+(";) p n
+() S 8 T (    first = 0;) N
+() S 8 T (    ) S
+(if) K
+( \(strmhandler_bdd\)) p n
+() S 8 T (       strmhandler_bdd\(o,bddlevel2var[n]\);) N
+() S 8 T (    ) S
+(else) K n
+() p 8 T (       o << bddlevel2var[n];) N
+() S 8 T (    o << ") S
+(:) str
+(" << \(set[n]==2 ? 1 : 0\);) p n
+() S 8 T ( }) N
+(      }) N
+() N
+(      o << ") S
+(>) str
+(";) p n
+(   }) N
+(   ) S
+(else) K n
+(   {) p n
+(      set[LEVEL\(r\)] = 1;) N
+(      bdd_printset_rec\(o, LOW\(r\), set\);) N
+(      ) N
+(      set[LEVEL\(r\)] = 2;) N
+(      bdd_printset_rec\(o, HIGH\(r\), set\);) N
+(      ) N
+(      set[LEVEL\(r\)] = 0;) N
+(   }) N
+(}) N
+() N
+() N
+(static) K
+( ) p
+(void) k
+( bdd_printdot_rec\(ostream& o, ) p
+(int) k
+( r\)) p n
+({) N
+(   ) S
+(if) K
+( \(ISCONST\(r\) || MARKED\(r\)\)) p n
+(      ) S
+(return) K
+(;) p n
+() N
+(   o << r << ") S
+([label=\\") str
+(";) p n
+(   ) S
+(if) K
+( \(strmhandler_bdd\)) p n
+(      strmhandler_bdd\(o,bddlevel2var[LEVEL\(r\)]\);) N
+(   ) S
+(else) K n
+(      o << bddlevel2var[LEVEL\(r\)];) p n
+(   o << ") S
+(\\"];\\n) str
+(";) p n
+(   o << r << ") S
+( -> ) str
+(" << LOW\(r\) << ") p
+([style=dotted];\\n) str
+(";) p n
+(   o << r << ") S
+( -> ) str
+(" << HIGH\(r\) << ") p
+([style=filled];\\n) str
+(";) p n
+() N
+(   SETMARK\(r\);) N
+(   ) N
+(cppext.cxx) (Page 6/9) (Mar 24, 04 21:35) title
+border
+grestore
+(Printed by Rune M. Jensen) rhead
+(cppext.cxx) (4/7) (Wednesday March 24, 2004) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (7-8) 5
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(   bdd_printdot_rec\(o, LOW\(r\)\);) p n
+(   bdd_printdot_rec\(o, HIGH\(r\)\);) N
+(}) N
+() N
+() N
+(static) K
+( ) p
+(void) k
+( fdd_printset_rec\(ostream &o, ) p
+(int) k
+( r, ) p
+(int) k
+( *set\)) p n
+({) N
+(   ) S
+(int) k
+( n,m,i;) p n
+(   ) S
+(int) k
+( used = 0;) p n
+(   ) S
+(int) k
+( *binval;) p n
+(   ) S
+(int) k
+( ok, first;) p n
+(   ) N
+(   ) S
+(if) K
+( \(r == 0\)) p n
+(      ) S
+(return) K
+(;) p n
+(   ) S
+(else) K n
+(   ) p
+(if) K
+( \(r == 1\)) p n
+(   {) N
+(      o << ") S
+(<) str
+(";) p n
+(      first=1;) N
+(      ) S
+(int) k
+( fdvarnum = fdd_domainnum\(\);) p n
+() S 8 T ( ) N
+(      ) S
+(for) K
+( \(n=0 ; n<fdvarnum ; n++\)) p n
+(      {) N
+() S 8 T ( ) S
+(int) k
+( firstval=1;) p n
+() S 8 T ( used = 0;) N
+() S 8 T ( ) S
+(int) k
+( binsize = fdd_varnum\(n\);) p n
+() S 8 T ( ) S
+(int) k
+( *vars = fdd_vars\(n\);) p n
+() S 8 T ( ) N
+() S 8 T ( ) S
+(for) K
+( \(m=0 ; m<binsize ; m++\)) p n
+() S 8 T (    ) S
+(if) K
+( \(set[vars[m]] != 0\)) p n
+() S 8 T (       used = 1;) N
+() S 8 T ( ) N
+() S 8 T ( ) S
+(if) K
+( \(used\)) p n
+() S 8 T ( {) N
+() S 8 T (    ) S
+(if) K
+( \(!first\)) p n
+() S 8 T (       o << ") S
+(, ) str
+(";) p n
+() S 8 T (    first = 0;) N
+() S 8 T (    ) S
+(if) K
+( \(strmhandler_fdd\)) p n
+() S 8 T (       strmhandler_fdd\(o, n\);) N
+() S 8 T (    ) S
+(else) K n
+() p 8 T (       o << n;) N
+() S 8 T (    o << ") S
+(:) str
+(";) p n
+() N
+() S 8 T (    ) S
+(for) K
+( \(m=0 ; m<\(1<<binsize\) ; m++\)) p n
+() S 8 T (    {) N
+() S 8 T (       binval = fdddec2bin\(n, m\);) N
+() S 8 T (       ok=1;) N
+() S 8 T (       ) N
+() S 8 T (       ) S
+(for) K
+( \(i=0 ; i<binsize && ok ; i++\)) p n
+() S 8 T () S 16 T (  ) S
+(if) K
+( \(set[vars[i]] == 1  &&  binval[i] != 0\)) p n
+() S 8 T () S 16 T (     ok = 0;) N
+() S 8 T () S 16 T (  ) S
+(else) K n
+() p 8 T () S 16 T (  ) S
+(if) K
+( \(set[vars[i]] == 2  &&  binval[i] != 1\)) p n
+() S 8 T () S 16 T (     ok = 0;) N
+() N
+() S 8 T (       ) S
+(if) K
+( \(ok\)) p n
+() S 8 T (       {) N
+() S 8 T () S 16 T (  ) S
+(if) K
+( \(firstval\)) p n
+() S 8 T () S 16 T (     o << m;) N
+() S 8 T () S 16 T (  ) S
+(else) K n
+() p 8 T () S 16 T (     o << ") S
+(/) str
+(" << m;) p n
+() S 8 T () S 16 T (  firstval = 0;) N
+() S 8 T (       }) N
+() N
+() S 8 T (       free\(binval\);) N
+() S 8 T (    }) N
+() S 8 T ( }) N
+(      }) N
+() N
+(cppext.cxx) (Page 7/9) (Mar 24, 04 21:35) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(      o << ") p
+(>) str
+(";) p n
+(   }) N
+(   ) S
+(else) K n
+(   {) p n
+(      set[bddlevel2var[LEVEL\(r\)]] = 1;) N
+(      fdd_printset_rec\(o, LOW\(r\), set\);) N
+(      ) N
+(      set[bddlevel2var[LEVEL\(r\)]] = 2;) N
+(      fdd_printset_rec\(o, HIGH\(r\), set\);) N
+(      ) N
+(      set[bddlevel2var[LEVEL\(r\)]] = 0;) N
+(   }) N
+(}) N
+() N
+() N
+(/*=[ FDD I/O functions ]================================================*/) c n
+() p n
+(/*) c n
+(NAME    {* fdd\\_strm\\_hook *}) N
+(SECTION {* fdd *}) N
+(SHORT   {* Specifies a printing callback handler *}) N
+(PROTO   {* bddstrmhandler fdd_strm_hook\(bddstrmhandler handler\) *}) N
+(DESCR   {* A printing callback handler for use with FDDs is used to) N
+(           convert the FDD integer identifier into something readable by the) N
+() S 8 T (   end user. Typically the handler will print a string name) N
+() S 8 T (   instead of the identifier. A handler could look like this:) N
+() S 8 T (   \\begin{verbatim}) N
+(void printhandler\(ostream &o, int var\)) N
+({) N
+(   extern char **names;) N
+(   o << names[var];) N
+(}) N
+(\\end{verbatim}) N
+() N
+(           \\noindent) N
+(           The handler can then be passed to BuDDy like this:) N
+() S 8 T (   {\\tt fdd\\_strm\\_hook\(printhandler\)}.) N
+() N
+() S 8 T (   No default handler is supplied. The argument {\\tt handler} may be) N
+() S 8 T (   NULL if no handler is needed. *}) N
+(RETURN  {* The old handler *}) N
+(ALSO    {* fdd\\_printset, bdd\\_file\\_hook *}) N
+(*/) N
+(bddstrmhandler fdd_strm_hook\(bddstrmhandler handler\)) p n
+({) N
+(   bddstrmhandler old = strmhandler_fdd;) N
+(   strmhandler_fdd = handler;) N
+(   ) S
+(return) K
+( old;) p n
+(}) N
+() N
+() N
+(/*************************************************************************) c n
+(   bvec functions) N
+(*************************************************************************/) N
+() p n
+(bvec bvec::) S
+(operator) K
+(=\() p
+(const) K
+( bvec &src\)) p n
+({) N
+(   ) S
+(if) K
+( \(&src != ) p
+(this) K
+(\)) p n
+(   {) N
+(      bvec_free\(roots\);) N
+(      roots = bvec_copy\(src.roots\);) N
+(   }) N
+(   ) S
+(return) K
+( *) p
+(this) K
+(;) p n
+(}) N
+() N
+() N
+(void) k
+( bvec::set\() p
+(int) k
+( bitnum, ) p
+(const) K
+( bdd &b\)) p n
+({) N
+(   bdd_delref\(roots.bitvec[bitnum]\);) N
+(cppext.cxx) (Page 8/9) (Mar 24, 04 21:35) title
+border
+grestore
+(Printed by Rune M. Jensen) rhead
+(cppext.cxx) (5/7) (Wednesday March 24, 2004) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (9) 6
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(   roots.bitvec[bitnum] = b.root;) p n
+(   bdd_addref\(roots.bitvec[bitnum]\);) N
+(}) N
+() N
+() N
+(/*======================================================================*/) c n
+() p n
+(bvec bvec_map1\() S
+(const) K
+( bvec &a,) p n
+() S 8 T (       bdd \(*fun\)\() S
+(const) K
+( bdd &\)\)) p n
+({) N
+(   bvec res;) N
+(   ) S
+(int) k
+( n;) p n
+() N
+(   res = bvec_false\(a.bitnum\(\)\);) N
+(   ) S
+(for) K
+( \(n=0 ; n < a.bitnum\(\) ; n++\)) p n
+(      res.set\(n, fun\(a[n]\)\);) N
+() N
+(   ) S
+(return) K
+( res;) p n
+(}) N
+() N
+() N
+(bvec bvec_map2\() S
+(const) K
+( bvec &a, ) p
+(const) K
+( bvec &b,) p n
+() S 8 T (       bdd \(*fun\)\() S
+(const) K
+( bdd &, ) p
+(const) K
+( bdd &\)\)) p n
+({) N
+(   bvec res;) N
+(   ) S
+(int) k
+( n;) p n
+() N
+(   ) S
+(if) K
+( \(a.bitnum\(\) != b.bitnum\(\)\)) p n
+(   {) N
+(      bdd_error\(BVEC_SIZE\);) N
+(      ) S
+(return) K
+( res;) p n
+(   }) N
+(   ) N
+(   res = bvec_false\(a.bitnum\(\)\);) N
+(   ) S
+(for) K
+( \(n=0 ; n < a.bitnum\(\) ; n++\)) p n
+(      res.set\(n, fun\(a[n], b[n]\)\);) N
+() N
+(   ) S
+(return) K
+( res;) p n
+(}) N
+() N
+() N
+(bvec bvec_map3\() S
+(const) K
+( bvec &a, ) p
+(const) K
+( bvec &b, ) p
+(const) K
+( bvec &c,) p n
+() S 8 T (       bdd \(*fun\)\() S
+(const) K
+( bdd &, ) p
+(const) K
+( bdd &, ) p
+(const) K
+( bdd &\)\)) p n
+({) N
+(   bvec res;) N
+(   ) S
+(int) k
+( n;) p n
+() N
+(   ) S
+(if) K
+( \(a.bitnum\(\) != b.bitnum\(\)  ||  b.bitnum\(\) != c.bitnum\(\)\)) p n
+(   {) N
+(      bdd_error\(BVEC_SIZE\);) N
+(      ) S
+(return) K
+( res;) p n
+(   }) N
+(   ) N
+(   res = bvec_false\(a.bitnum\(\)\);) N
+(   ) S
+(for) K
+( \(n=0 ; n < a.bitnum\(\) ; n++\)) p n
+(      res.set\(n, fun\(a[n], b[n], c[n]\) \);) N
+() N
+(   ) S
+(return) K
+( res;) p n
+(}) N
+() N
+() N
+(/* EOF */) c n
+(cppext.cxx) (Page 9/9) (Mar 24, 04 21:35) title
+border
+grestore
+(Printed by Rune M. Jensen) rhead
+(cppext.cxx) (6/7) (Wednesday March 24, 2004) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 7
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# ==============================================================) c n
+(# Makefile for BDD source) N
+(# - Do not touch) N
+(# ==============================================================) N
+() p n
+(# --- full object list) c n
+(OBJ) l
+( = bddio.o bddop.o bvec.o cache.o cppext.o fdd.o imatrix.o kernel.o \\) p n
+(      pairs.o prime.o reorder.o tree.o) N
+(CFILES) l
+( = bddio.c bddop.c bvec.c cache.c fdd.c imatrix.c kernel.c \\) p n
+(       pairs.c prime.c reorder.c tree.c) N
+(CCFILES) l
+( = cppext.cxx) p n
+() N
+(include ../config) N
+() N
+(# --------------------------------------------------------------) c n
+(# Code generation) N
+(# --------------------------------------------------------------) N
+() p n
+(.SUFFIXES: .cxx .c) N
+() N
+(.cxx.o:) N
+() S 8 T ($\(CPP\) $\(CFLAGS\) $\(DFLAGS\) -c $<) N
+() N
+(.c.o:) N
+() S 8 T ($\(CC\) $\(CFLAGS\) $\(DFLAGS\) -c $<) N
+() N
+() N
+(# --------------------------------------------------------------) c n
+(# The primary targets.) N
+(# --------------------------------------------------------------) N
+() p n
+(libbdd.a) L
+(:) p 16 T ($\(OBJ\) ../config) N
+() S 8 T (ar r libbdd.a $\(OBJ\)) N
+() S 8 T (ranlib libbdd.a) N
+() N
+(clean) L
+(:) p n
+() S 8 T (rm -f lib$\(TARGET\).a) N
+() S 8 T (rm -f *.o core *~) N
+() S 8 T (rm -f libbdd.a) N
+() S 8 T (rm -f bddtest) N
+() N
+(depend) L
+(:) p n
+() S 8 T (gcc -MM $\(CFLAGS\) $\(DFLAGS\) $\(CFILES\) > depend.inf) N
+() S 8 T (g++ -MM $\(CFLAGS\) $\(DFLAGS\) $\(CCFILES\) >> depend.inf) N
+() N
+(bddtest) L
+(: libbdd.a bddtest.cxx ../config) p n
+() S 8 T ($\(CPP\) $\(CFLAGS\) $\(DFLAGS\) bddtest.cxx -o bddtest -L. -lbdd) N
+(###) c n
+(include depend.inf) p n
+(makefile) (Page 1/1) (Mar 24, 04 21:35) title
+border
+grestore
+(Printed by Rune M. Jensen) rhead
+(makefile) (7/7) (Wednesday March 24, 2004) footer
+end % of iso1dict
+pagesave restore
+showpage
+
+%%Trailer
+end
+%%EOF

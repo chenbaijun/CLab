@@ -1,0 +1,30 @@
+\setlength{\unitlength}{0.00083333in}
+%
+\begingroup\makeatletter\ifx\SetFigFont\undefined%
+\gdef\SetFigFont#1#2#3#4#5{%
+  \reset@font\fontsize{#1}{#2pt}%
+  \fontfamily{#3}\fontseries{#4}\fontshape{#5}%
+  \selectfont}%
+\fi\endgroup%
+{\renewcommand{\dashlinestretch}{30}
+\begin{picture}(2205,1704)(0,-10)
+\thicklines
+\put(1965,1370){\ellipse{450}{300}}
+\put(240,1370){\ellipse{450}{300}}
+\put(990,1370){\ellipse{450}{300}}
+\path(994,1216)(990,770)
+\dashline{45.000}(245,1220)(247,770)
+\path(394,1258)(964,770)
+\dashline{45.000}(828,1256)(277,770)
+\path(2043,1216)(2039,770)
+\dashline{45.000}(1889,1220)(1891,770)
+\put(205,1557){\makebox(0,0)[lb]{\smash{{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\itdefault}$u$}}}}}
+\put(959,1549){\makebox(0,0)[lb]{\smash{{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\itdefault}$v$}}}}}
+\put(1919,1546){\makebox(0,0)[lb]{\smash{{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\itdefault}$u$}}}}}
+\put(202,1325){\makebox(0,0)[lb]{\smash{{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\itdefault}$x$}}}}}
+\put(952,1325){\makebox(0,0)[lb]{\smash{{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\itdefault}$x$}}}}}
+\put(1927,1325){\makebox(0,0)[lb]{\smash{{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\itdefault}$x$}}}}}
+\put(533,54){\makebox(0,0)[lb]{\smash{{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\updefault}(a)}}}}}
+\put(1875,62){\makebox(0,0)[lb]{\smash{{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\updefault}(b)}}}}}
+\end{picture}
+}

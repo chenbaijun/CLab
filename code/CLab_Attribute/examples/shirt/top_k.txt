@@ -1,0 +1,11 @@
+No#   weight   color  size    print 
+  1   | 43   | Black  Small   MIB    
+  2   | 40   | Black  Medium  MIB    
+  3   | 38   | Black  Medium  STW    
+  4   | 37   | Black  Large   MIB    
+  5   | 36   | White  Medium  STW    
+  6   | 35   | Black  Large   STW    
+  7   | 33   | White  Large   STW    
+  8   | 32   | Red    Medium  STW    
+  9   | 29   | Blue   Medium  STW    
+ 10   | 29   | Red    Large   STW    

@@ -1,0 +1,14 @@
+lex.yy.o: lex.yy.c y.tab.h
+y.tab.o: y.tab.c common.hpp cp.hpp
+common.o: common.cc ../buddy20/src/bdd.h common.hpp
+cp.o: cp.cc common.hpp set.hpp cp.hpp
+set.o: set.cc
+timer.o: timer.cc common.hpp timer.hpp
+layout.o: layout.cc layout.hpp common.hpp cp.hpp
+space.o: space.cc set.hpp common.hpp cp.hpp symbols.hpp clab.hpp \
+  ../buddy20/src/bdd.h layout.hpp space.hpp
+symbols.o: symbols.cc symbols.hpp cp.hpp common.hpp clab.hpp \
+  ../buddy20/src/bdd.h set.hpp
+clab.o: clab.cc ../buddy20/src/bdd.h common.hpp cp.hpp layout.hpp \
+  space.hpp symbols.hpp clab.hpp
+main.o: main.cc ../buddy20/src/bdd.h common.hpp main.hpp set.hpp clab.hpp

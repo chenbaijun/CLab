@@ -1,0 +1,5 @@
+单核！
+ht   color  size    print 
+  1   | 42   | Black  Small   MIB    
+  2   | 39   | Black  Medium  MIB    
+  3   | 37   | Black  Medium  STW    

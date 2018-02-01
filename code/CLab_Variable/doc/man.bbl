@@ -1,0 +1,15 @@
+\begin{thebibliography}{1}
+
+\bibitem{B86}
+R.~E. Bryant.
+\newblock Graph-based algorithms for boolean function manipulation.
+\newblock {\em {IEEE} Transactions on Computers}, 8:677--691, 1986.
+
+\bibitem{L99}
+J.~Lind-Nielsen.
+\newblock {BuDDy - A Binary Decision Diagram Package}.
+\newblock Technical Report IT-TR: 1999-028, Institute of Information
+  Technology, Technical University of Denmark, 1999.
+\newblock \verb+http://cs.it.dtu.dk/buddy+.
+
+\end{thebibliography}

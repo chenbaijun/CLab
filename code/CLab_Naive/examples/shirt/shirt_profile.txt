@@ -1,0 +1,5 @@
+
+
+ shirtColor {Black:21,White:18,Red:14,Blue:11};
+ shirtSize  {Small:15,Medium:12,Large:9};
+ shirtPrint {MIB:8,STW:6}; 
